@@ -2,13 +2,12 @@ import { NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
-    // Query for trails in Clark County, WA (Relation ID: 1790432)
     const query = `
     [out:json][timeout:180];
-    area(3600244795)->.searchArea;
+    area["name"="Clark County"]["admin_level"="6"]["ISO3166-2"="US-WA"]->.searchArea;
     (
-      way["highway"~"path|footway|track|bridleway"]["access"!~"no"]["private"!~"yes"](area.searchArea);
-      way["highway"~"unclassified|residential"]["trail_visibility"](area.searchArea); // Also catch roads tagged as trails
+      way["highway"~"path|footway|track|bridleway"](area.searchArea);
+      way["highway"~"unclassified|residential"]["trail_visibility"](area.searchArea);
     );
     out geom;
   `
