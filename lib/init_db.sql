@@ -58,6 +58,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- BATCH VERSION FOR PERFORMANCE
+CREATE OR REPLACE FUNCTION batch_ingest_osm_segments(p_segments JSONB) RETURNS VOID AS $$
+BEGIN
+  INSERT INTO segments (id, way_id, osm_name, highway_type, geom, length_meters)
+  SELECT 
+    (elem->>'id')::BIGINT,
+    (elem->>'way_id')::BIGINT,
+    elem->>'osm_name',
+    elem->>'highway_type',
+    ST_GeomFromText(elem->>'geom_wkt', 4326),
+    ST_Length(ST_GeomFromText(elem->>'geom_wkt', 4326)::geography)
+  FROM jsonb_array_elements(p_segments) AS elem
+  ON CONFLICT (id) DO UPDATE SET
+    osm_name = EXCLUDED.osm_name,
+    highway_type = EXCLUDED.highway_type;
+END;
+$$ LANGUAGE plpgsql;
+
 -- 3. CORE LOGIC: MATCH GPS TRACE TO TRAILS
 CREATE OR REPLACE FUNCTION match_activity_to_segments(
   p_user_id UUID,

@@ -24,7 +24,19 @@ export async function POST() {
             return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
         }
 
-        // 2. Fetch activities from Strava
+        // 2. PRE-CHECK: Do we have segments in the DB?
+        const { count, error: countError } = await supabaseAdmin
+            .from('segments')
+            .select('*', { count: 'exact', head: true })
+
+        if (countError || count === 0) {
+            return NextResponse.json({
+                error: 'Map data not loaded yet. Please run the trail ingestion first!',
+                details: 'The segments table is empty. Visit .../api/admin/ingest-osm'
+            }, { status: 400 })
+        }
+
+        // 3. Fetch activities from Strava
         const stravaResponse = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=30`, {
             headers: {
                 'Authorization': `Bearer ${profile.strava_access_token}`

@@ -14,7 +14,7 @@ export async function matchTraceToSegments(userId: string, activityId: string, t
         p_user_id: userId,
         p_activity_id: activityId,
         p_trace_wkt: wkt,
-        p_buffer_meters: 15 // Buffer around the GPS trace to account for noise
+        p_buffer_meters: 20 // Slightly larger buffer for GPS noise
     })
 
     if (error) {

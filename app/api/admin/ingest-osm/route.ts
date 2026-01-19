@@ -38,18 +38,17 @@ export async function GET() {
             }
         }
 
-        // Use a single SQL query via RPC or raw SQL to ingest and calculate lengths
-        // For the prototype, we'll use a refined approach:
-        for (const segment of segments) {
-            const { error: insertError } = await supabaseAdmin.rpc('ingest_osm_segment', {
-                p_id: segment.id,
-                p_way_id: segment.way_id,
-                p_name: segment.osm_name,
-                p_highway: segment.highway_type,
-                p_wkt: segment.geom_wkt
+        // Use batch ingestion in chunks for high performance and to avoid timeouts
+        const chunkSize = 500
+        for (let i = 0; i < segments.length; i += chunkSize) {
+            const chunk = segments.slice(i, i + chunkSize)
+            const { error: insertError } = await supabaseAdmin.rpc('batch_ingest_osm_segments', {
+                p_segments: chunk
             })
 
-            if (insertError) console.error('Insert error:', insertError)
+            if (insertError) {
+                console.error(`Error ingesting chunk ${i / chunkSize}:`, insertError)
+            }
         }
 
         return NextResponse.json({
