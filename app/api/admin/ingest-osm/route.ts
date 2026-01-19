@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
     // Query for trails in Clark County, WA (Relation ID: 1790432)
@@ -26,13 +26,8 @@ export async function GET() {
 
         for (const way of data.elements) {
             if (way.type === 'way' && way.geometry) {
-                // Simple segmentation: Each way is a segment for now
-                // In a more advanced version, we'd split at intersections
-                const coords = way.geometry.map((p: any) => `[${p.lon}, ${p.lat}]`).join(',')
                 const lineString = `LINESTRING(${way.geometry.map((p: any) => `${p.lon} ${p.lat}`).join(',')})`
 
-                // Calculate length using a simple sphere distance or let PostGIS do it
-                // We'll store it as a WKT for PostGIS to ingest
                 segments.push({
                     id: way.id,
                     way_id: way.id,
@@ -43,20 +38,23 @@ export async function GET() {
             }
         }
 
-        // Batch insert into Supabase
-        // We'll use a stored procedure or multiple inserts because of the WKT
-        // For simplicity in this script, we'll use a raw SQL approach via a RPC if available
-        // or just transform to a format Supabase likes.
+        // Use a single SQL query via RPC or raw SQL to ingest and calculate lengths
+        // For the prototype, we'll use a refined approach:
+        for (const segment of segments) {
+            const { error: insertError } = await supabaseAdmin.rpc('ingest_osm_segment', {
+                p_id: segment.id,
+                p_way_id: segment.way_id,
+                p_name: segment.osm_name,
+                p_highway: segment.highway_type,
+                p_wkt: segment.geom_wkt
+            })
 
-        // Let's assume we have an RPC 'ingest_segments' that takes a JSON array
-        // Or we can try to use the 'segments' table directly if it accepts WKT strings as geom (it doesn't usually via JS client)
-
-        // Better: Send to a server action or separate script that uses the service role and raw pg
+            if (insertError) console.error('Insert error:', insertError)
+        }
 
         return NextResponse.json({
-            message: 'Successfully fetched OSM data',
-            wayCount: segments.length,
-            sample: segments.slice(0, 5)
+            message: 'Successfully fetched and ingested OSM data',
+            wayCount: segments.length
         })
     } catch (err) {
         console.error('OSM Ingestion Error:', err)

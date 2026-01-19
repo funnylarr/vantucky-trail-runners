@@ -1,6 +1,7 @@
 import { LucideMap, LucideTrophy, LucideActivity, LucideChevronRight } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase'
+import SyncButton from '@/components/SyncButton'
 
 async function getProfile(athleteId: string) {
     const { data } = await supabaseAdmin
@@ -95,9 +96,7 @@ export default async function DashboardPage() {
                 <h2 className="text-xl font-bold mb-4">Ready for your next run?</h2>
                 <p className="text-gray-400 mb-6">Your activities are automatically synced. Just run, and we'll do the rest.</p>
                 <div className="flex justify-center gap-4">
-                    <button className="strava-button px-6 py-3 rounded-xl font-bold">
-                        Sync Latest Runs
-                    </button>
+                    <SyncButton />
                 </div>
             </div>
         </div>
