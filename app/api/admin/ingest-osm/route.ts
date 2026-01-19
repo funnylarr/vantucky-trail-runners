@@ -5,9 +5,10 @@ export async function GET() {
     // Query for trails in Clark County, WA (Relation ID: 1790432)
     const query = `
     [out:json][timeout:180];
-    area(3601790432)->.searchArea;
+    area(3600244795)->.searchArea;
     (
       way["highway"~"path|footway|track|bridleway"]["access"!~"no"]["private"!~"yes"](area.searchArea);
+      way["highway"~"unclassified|residential"]["trail_visibility"](area.searchArea); // Also catch roads tagged as trails
     );
     out geom;
   `
