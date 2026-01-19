@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-strava: rgb(252, 76, 2);
+  --color-visited: rgb(251, 191, 36);
+  --color-unvisited: rgb(59, 130, 246);
+  --color-denim: rgb(21, 67, 136);
+}
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 10, 10, 15;
+  --background-end-rgb: 0, 0, 0;
+
+  --strava-color: 252, 76, 2;
+  --visited-color: 251, 191, 36;
+  --unvisited-color: 59, 130, 246;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}
+
+.strava-button {
+  background-color: rgb(var(--strava-color));
+  color: white;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.strava-button:hover {
+  background-color: rgba(var(--strava-color), 0.9);
+  transform: translateY(-2px);
+}
