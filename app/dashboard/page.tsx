@@ -1,6 +1,22 @@
 import { LucideMap, LucideTrophy, LucideActivity, LucideChevronRight } from 'lucide-react'
+import { cookies } from 'next/headers'
+import { supabaseAdmin } from '@/lib/supabase'
 
-export default function DashboardPage() {
+async function getProfile(athleteId: string) {
+    const { data } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('strava_athlete_id', athleteId)
+        .single()
+    return data
+}
+
+export default async function DashboardPage() {
+    const cookieStore = await cookies()
+    const athleteId = cookieStore.get('strava_athlete_id')?.value
+
+    const profile = athleteId ? await getProfile(athleteId) : null
+
     return (
         <div className="max-w-6xl mx-auto space-y-8">
             <div className="flex justify-between items-end">
@@ -8,6 +24,12 @@ export default function DashboardPage() {
                     <h1 className="text-4xl font-bold mb-2 italic">Vantucky Trail Runners</h1>
                     <p className="text-gray-400">Tracking miles and cutoffs across Clark County.</p>
                 </div>
+                {profile && (
+                    <div className="text-right">
+                        <div className="text-sm text-gray-400 uppercase tracking-widest">Active Jorter</div>
+                        <div className="text-xl font-bold text-denim">Runner #{athleteId}</div>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -18,7 +40,7 @@ export default function DashboardPage() {
                         </div>
                         <h3 className="font-bold text-gray-400 uppercase text-xs tracking-widest">Unique Jort-Miles</h3>
                     </div>
-                    <div className="text-3xl font-extrabold">0.00 <span className="text-sm font-normal text-gray-500">mi</span></div>
+                    <div className="text-3xl font-extrabold">{profile?.total_unique_miles?.toFixed(2) || '0.00'} <span className="text-sm font-normal text-gray-500">mi</span></div>
                     <div className="mt-2 text-xs text-green-500 font-medium">+0.0 this week</div>
                 </div>
 
